@@ -1,4 +1,4 @@
-module rulegraph-dsl
+module github.com/gpestana/rulegraph-dsl
 
 go 1.18
 

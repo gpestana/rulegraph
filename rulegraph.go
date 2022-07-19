@@ -9,7 +9,14 @@ type RuleGraph struct {
 	ruleNodes []RulesNode
 }
 
-// NewRuleGraphWith returns a new RuleGraph with a predefined ruleset
+// NewRuleGraph returns a new RuleGraph instance without any set of rules
+func NewRuleGraph() *RuleGraph {
+	return &RuleGraph{
+		ruleNodes: []RulesNode{},
+	}
+}
+
+// NewRuleGraphWith returns a new RuleGraph instance with a predefined ruleset
 func NewRuleGraphWith(ruleset []RulesNode) *RuleGraph {
 	return &RuleGraph{
 		ruleset,
@@ -34,4 +41,22 @@ func (rg *RuleGraph) Evaluate(json []byte) ([]uuid.UUID, error) {
 	}
 
 	return idsEvalTrue, nil
+}
+
+// LoadRulesFromString replaces the current rules with rules encoded as a
+// string, or return an error if the input is malformed
+func (rg *RuleGraph) LoadRulesFromString(rstring string) error {
+	rules, err := RulesFromString(rstring)
+	if err != nil {
+		return err
+	}
+
+	rg.ruleNodes = rules
+
+	return nil
+}
+
+// IsRulesetEmpty returns true if the rule set of the instance is empty
+func (rg RuleGraph) IsRulesetEmpty() bool {
+	return len(rg.ruleNodes) == 0
 }

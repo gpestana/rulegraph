@@ -1,6 +1,8 @@
 package rulegraph
 
 import (
+	"encoding/json"
+
 	uuid "github.com/satori/go.uuid"
 	gojsonq "github.com/thedevsaddam/gojsonq/v2"
 )
@@ -9,6 +11,19 @@ import (
 type RulesNode struct {
 	ID    uuid.UUID `json:"id"`
 	Rules []Rule    `json:"rules"`
+}
+
+// RulesFromString returns a new set of rules from a string or an error, if the string
+// is malformed
+func RulesFromString(rstring string) ([]RulesNode, error) {
+	rules := []RulesNode{}
+
+	err := json.Unmarshal([]byte(rstring), &rules)
+	if err != nil {
+		return rules, err
+	}
+
+	return rules, nil
 }
 
 // Evaluate evaluates the current rule against a provided input
