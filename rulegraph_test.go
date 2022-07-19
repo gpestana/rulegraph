@@ -32,7 +32,7 @@ func objFactory(test string) ([]byte, error) {
 	obj := TestObj{}
 
 	switch test {
-	case "test1":
+	case "testCase1":
 		obj = TestObj{
 			User: TestUser{
 				Name:       "Pete",
@@ -46,7 +46,7 @@ func objFactory(test string) ([]byte, error) {
 			},
 		}
 
-	case "test2":
+	case "testCase2":
 		obj = TestObj{
 			User: TestUser{
 				Name:       "Andrew",
@@ -83,7 +83,7 @@ func TestRuleGraphSimpleCases(t *testing.T) {
 `
 
 	// Test 1
-	testObj, err := objFactory("test1")
+	testObj, err := objFactory("testCase1")
 	assert.NoError(t, err)
 
 	expectedMatchIDs := []uuid.UUID{
@@ -111,7 +111,7 @@ func TestRuleGraphSimpleCases(t *testing.T) {
 	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval test1 matches both rules")
 
 	// Test 2
-	testObj, err = objFactory("test2")
+	testObj, err = objFactory("testCase2")
 	assert.NoError(t, err)
 
 	expectedMatchIDs = []uuid.UUID{
@@ -132,4 +132,90 @@ func TestRuleGraphSimpleCases(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval test2 matches both rules")
+}
+
+func TestRuleGraphInequalities(t *testing.T) {
+	rulesNodeStr := `{
+	"id": "2227b810-9dad-11d1-80b4-00c04fd33333",
+	"rules": [
+		{ "operation": "larger_than", "left_side": "user.age", "right_side": "10" },
+		{ "operation": "lower_than", "left_side": "user.age", "right_side": "30" }
+	]
+}
+`
+	// Test 1
+	testObj, err := objFactory("testCase1")
+	assert.NoError(t, err)
+
+	expectedMatchIDs := []uuid.UUID{
+		uuid.FromStringOrNil("2227b810-9dad-11d1-80b4-00c04fd33333"),
+	}
+
+	var rulesNode RulesNode
+	err = json.Unmarshal([]byte(rulesNodeStr), &rulesNode)
+	if err != nil {
+		t.Error("Error: ", err)
+	}
+
+	rgraph := NewRuleGraphWith([]RulesNode{rulesNode})
+
+	matchIDs, err := rgraph.Evaluate(testObj)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval inequality should match struct state")
+
+	// Test 2
+	rulesNodeStr = `{
+	"id": "2227b810-9dad-11d1-80b4-00c04fd33333",
+	"rules": [
+		{ "operation": "larger_than", "left_side": "user.age", "right_side": "30" },
+		{ "operation": "lower_than", "left_side": "user.age", "right_side": "50" }
+	]
+}`
+
+	testObj, err = objFactory("testCase1")
+	assert.NoError(t, err)
+
+	expectedMatchIDs = []uuid.UUID{}
+
+	err = json.Unmarshal([]byte(rulesNodeStr), &rulesNode)
+	if err != nil {
+		t.Error("Error: ", err)
+	}
+
+	rgraph = NewRuleGraphWith([]RulesNode{rulesNode})
+
+	matchIDs, err = rgraph.Evaluate(testObj)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval inequality should not match struct state")
+}
+
+func TestRuleGraphAnd(t *testing.T) {
+	rulesNodeStr := `{
+	"id": "2227b810-9dad-11d1-80b4-00c04fd33333",
+	"rules": [
+		{ "operation": "lower_than", "left_side": "user.age", "right_side": "30" },
+		{ "operation": "equal", "left_side": "user.age", "right_side": "15" }
+	]
+}
+`
+	// Test 1
+	testObj, err := objFactory("testCase1")
+	assert.NoError(t, err)
+
+	expectedMatchIDs := []uuid.UUID{}
+
+	var rulesNode RulesNode
+	err = json.Unmarshal([]byte(rulesNodeStr), &rulesNode)
+	if err != nil {
+		t.Error("Error: ", err)
+	}
+
+	rgraph := NewRuleGraphWith([]RulesNode{rulesNode})
+
+	matchIDs, err := rgraph.Evaluate(testObj)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval should not match struct state")
 }
