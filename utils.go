@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"math/rand"
 	"strconv"
+	"time"
 )
 
 func parseToInt64(valueIf interface{}, rightSideStr string) (float64, float64, error) {
@@ -40,4 +42,9 @@ func bufferIsEqual(x []byte, y []byte) bool {
 		}
 	}
 	return true
+}
+
+func randomNumberGenerator() float32 {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return r.Float32()
 }

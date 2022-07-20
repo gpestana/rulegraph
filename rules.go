@@ -2,15 +2,22 @@ package rulegraph
 
 import (
 	"encoding/json"
+	"fmt"
 
 	uuid "github.com/satori/go.uuid"
 	gojsonq "github.com/thedevsaddam/gojsonq/v2"
 )
 
+const (
+	minProbability = 0
+	maxProbability = 1
+)
+
 // RulesNode represents node with rules
 type RulesNode struct {
-	ID    uuid.UUID `json:"id"`
-	Rules []Rule    `json:"rules"`
+	ID              uuid.UUID `json:"id"`
+	Rules           []Rule    `json:"rules"`
+	SkipProbability float32   `json:"skip_probability"`
 }
 
 // RulesFromString returns a new set of rules from a string or an error, if the string
@@ -21,6 +28,13 @@ func RulesFromString(rstring string) ([]RulesNode, error) {
 	err := json.Unmarshal([]byte(rstring), &rules)
 	if err != nil {
 		return rules, err
+	}
+
+	for _, rn := range rules {
+		if rn.SkipProbability < minProbability || rn.SkipProbability > maxProbability {
+			return []RulesNode{},
+				fmt.Errorf("skip_probability should be within [0, 1], got %v", rn.SkipProbability)
+		}
 	}
 
 	return rules, nil
@@ -39,6 +53,13 @@ func (rn *RulesNode) Evaluate(json []byte) (bool, error) {
 			return false, nil
 		}
 	}
+
+	// flip the coin based on the rule's skip probability
+	rand := randomNumberGenerator()
+	if rn.SkipProbability > rand {
+		return false, nil
+	}
+
 	return true, nil
 }
 
