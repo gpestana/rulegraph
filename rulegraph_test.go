@@ -76,7 +76,7 @@ func TestRuleGraphSimpleCases(t *testing.T) {
 	rulesNode2Str := `{
 	"id": "2227b810-9dad-11d1-80b4-00c04fd22222",
 	"rules": [
-		{ "operation": "larger_than", "left_side": "user.age", "right_side": "10" },
+		{ "operation": "greater_than", "left_side": "user.age", "right_side": "10" },
 		{ "operation": "lower_than", "left_side": "house.size", "right_side": "30" }
 	]
 }
@@ -138,7 +138,7 @@ func TestRuleGraphInequalities(t *testing.T) {
 	rulesNodeStr := `{
 	"id": "2227b810-9dad-11d1-80b4-00c04fd33333",
 	"rules": [
-		{ "operation": "larger_than", "left_side": "user.age", "right_side": "10" },
+		{ "operation": "greater_than", "left_side": "user.age", "right_side": "10" },
 		{ "operation": "lower_than", "left_side": "user.age", "right_side": "30" }
 	]
 }
@@ -168,7 +168,7 @@ func TestRuleGraphInequalities(t *testing.T) {
 	rulesNodeStr = `{
 	"id": "2227b810-9dad-11d1-80b4-00c04fd33333",
 	"rules": [
-		{ "operation": "larger_than", "left_side": "user.age", "right_side": "30" },
+		{ "operation": "greater_than", "left_side": "user.age", "right_side": "30" },
 		{ "operation": "lower_than", "left_side": "user.age", "right_side": "50" }
 	]
 }`

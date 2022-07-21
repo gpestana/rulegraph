@@ -14,7 +14,7 @@ func TestRulesNodeMarshalingFromString(t *testing.T) {
 	"skip_probability": 0.3,
 	"rules": [
 		{
-			"operation": "larger_than",
+			"operation": "greater_than",
 			"left_side": "person.born_at",
 			"right_side": "2012-01-01"
 		}]
@@ -42,7 +42,7 @@ func TestRulesNodeMarshalingFromObject(t *testing.T) {
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	rules := `[{
-	"operation": "larger_than",
+	"operation": "greater_than",
 	"left_side": "person.born_at",
 	"right_side": "2012-01-01"
 },
@@ -65,7 +65,7 @@ func TestRulesNodeMarshalingFromObject(t *testing.T) {
 	assert.Equal(
 		t,
 		rn.Rules[0].Operation,
-		"larger_than",
+		"greater_than",
 		"rule operation does not match the expected",
 	)
 	assert.Equal(
