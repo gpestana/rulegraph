@@ -45,7 +45,7 @@ The above rulegraph will evaluated to `true` IFF the input object has `person.bo
 
 ### Rulegraph structure 
 
-![rulegraph](https://github.com/gpestana/rulegraph/tree/main/_docs/rulegraph.png?style=centerme)
+![rulegraph](https://github.com/gpestana/rulegraph/blob/main/_docs/rulegraph.jpg)
 
 Figure 1. `rulegraph` tree example
 
