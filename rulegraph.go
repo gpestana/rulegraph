@@ -43,6 +43,11 @@ func (rg *RuleGraph) Evaluate(json []byte) ([]uuid.UUID, error) {
 	return idsEvalTrue, nil
 }
 
+// LoadRules replaces the current rules with the input
+func (rg *RuleGraph) LoadRules(rules []RulesNode) {
+	rg.ruleNodes = rules
+}
+
 // LoadRulesFromString replaces the current rules with rules encoded as a
 // string, or return an error if the input is malformed
 func (rg *RuleGraph) LoadRulesFromString(rstring string) error {

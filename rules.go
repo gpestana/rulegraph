@@ -20,6 +20,24 @@ type RulesNode struct {
 	SkipProbability float32   `json:"skip_probability"`
 }
 
+// NewRulesNode returns a new rules node given the explicit set of params as
+// input (rules as a encoding string)
+func NewRulesNode(id uuid.UUID, rulesJSON string, skipProbability float32) (RulesNode, error) {
+	rulesNode := RulesNode{}
+
+	rules := []Rule{}
+	err := json.Unmarshal([]byte(rulesJSON), &rules)
+	if err != nil {
+		return rulesNode, err
+	}
+
+	rulesNode.ID = id
+	rulesNode.Rules = rules
+	rulesNode.SkipProbability = skipProbability
+
+	return rulesNode, nil
+}
+
 // RulesFromString returns a new set of rules from a string or an error, if the string
 // is malformed
 func RulesFromString(rstring string) ([]RulesNode, error) {
