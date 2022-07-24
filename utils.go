@@ -9,17 +9,56 @@ import (
 	"time"
 )
 
-func parseToInt64(valueIf interface{}, rightSideStr string) (float64, float64, error) {
-	value, ok := valueIf.(float64)
-	if !ok {
-		return 0, 0, fmt.Errorf("Error casting value (%s) to int64", valueIf)
-	}
-	rightSide, err := strconv.ParseFloat(rightSideStr, 64)
-	if err != nil {
-		return 0, 0, fmt.Errorf("Error parsing rule right side (%s) to float64", rightSideStr)
+func parseToFloat64(valueIf interface{}, rightSideStr string) (float64, float64, error) {
+	v, r, err := tryParseNumber(valueIf, rightSideStr)
+	if err == nil {
+		// return values if parsing was successful
+		return v, r, nil
 	}
 
-	return value, rightSide, nil
+	v, r, err = tryParseDate(valueIf, rightSideStr)
+	if err == nil {
+		// return values if parsing was successful
+		return v, r, nil
+	}
+
+	return tryParseString(valueIf, rightSideStr)
+}
+
+func tryParseNumber(valueIf interface{}, rightSideStr string) (float64, float64, error) {
+	value, ok := valueIf.(float64)
+	if !ok {
+		return 0, 0, fmt.Errorf("Error parsing value (%s) to number", valueIf)
+	}
+
+	rightSide, err := strconv.ParseFloat(rightSideStr, 64)
+
+	return value, rightSide, err
+}
+
+func tryParseDate(valueIf interface{}, rightSideStr string) (float64, float64, error) {
+	valueDate, err := time.Parse(time.RFC3339, valueIf.(string))
+	if err != nil {
+		return 0, 0, fmt.Errorf("Error parsing value (%s) to Date", valueIf)
+	}
+
+	rightSideDate, err := time.Parse(time.RFC3339, rightSideStr)
+	if err != nil {
+		return 0, 0, fmt.Errorf("Error parsing rule right side (%s) to Date", rightSideStr)
+	}
+
+	return float64(valueDate.UnixNano()), float64(rightSideDate.UnixNano()), nil
+}
+
+func tryParseString(valueIf interface{}, rightSideStr string) (float64, float64, error) {
+	value, err := strconv.ParseFloat(valueIf.(string), 64)
+	if err != nil {
+		return 0, 0, fmt.Errorf("Error parsing value (%s) to string", valueIf)
+	}
+
+	rightSide, err := strconv.ParseFloat(rightSideStr, 64)
+
+	return value, rightSide, err
 }
 
 func encodeBuffer(i interface{}) ([]byte, error) {

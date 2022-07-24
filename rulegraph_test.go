@@ -3,6 +3,7 @@ package rulegraph
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -23,9 +24,10 @@ type TestUser struct {
 
 // TestHouse is for testing purposes only
 type TestHouse struct {
-	ID    uuid.UUID `json:"id"`
-	Size  int       `json:"size"`
-	Price int       `json:"price"`
+	ID      uuid.UUID `json:"id"`
+	Size    int       `json:"size"`
+	Price   int       `json:"price"`
+	BuiltAt time.Time `json:"built_at"`
 }
 
 func objFactory(test string) ([]byte, error) {
@@ -33,6 +35,8 @@ func objFactory(test string) ([]byte, error) {
 
 	switch test {
 	case "testCase1":
+		builtAt, _ := time.Parse(time.RFC3339, "2011-01-02T15:04:05Z")
+
 		obj = TestObj{
 			User: TestUser{
 				Name:       "Pete",
@@ -40,9 +44,10 @@ func objFactory(test string) ([]byte, error) {
 				Permission: true,
 			},
 			House: TestHouse{
-				ID:    uuid.NewV4(),
-				Size:  15,
-				Price: 100,
+				ID:      uuid.NewV4(),
+				Size:    15,
+				Price:   100,
+				BuiltAt: builtAt,
 			},
 		}
 
@@ -57,6 +62,16 @@ func objFactory(test string) ([]byte, error) {
 				ID:    uuid.NewV4(),
 				Size:  15,
 				Price: 100,
+			},
+		}
+
+	case "testCase3":
+		builtAt, _ := time.Parse(time.RFC3339, "2022-01-02T15:04:05Z")
+
+		obj = TestObj{
+			User: TestUser{},
+			House: TestHouse{
+				BuiltAt: builtAt,
 			},
 		}
 	}
@@ -215,6 +230,48 @@ func TestRuleGraphAnd(t *testing.T) {
 	rgraph := NewRuleGraphWith([]RulesNode{rulesNode})
 
 	matchIDs, err := rgraph.Evaluate(testObj)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval should not match struct state")
+}
+
+func TestRuleInequalityTimestamp(t *testing.T) {
+	rulesNodeStr := `{
+	"id": "2227b810-9dad-11d1-80b4-00c04fd33333",
+	"rules": [
+		{ "operation": "greater_than", "left_side": "house.built_at", "right_side": "2021-01-02T15:04:05Z" },
+		{ "operation": "lower_than", "left_side": "house.built_at", "right_side": "2023-01-02T15:04:05Z" }
+	]
+}
+`
+	// Test 3 (built_at "2022-01-02T15:04:05Z)
+	testObj, err := objFactory("testCase3")
+	assert.NoError(t, err)
+
+	matchID, _ := uuid.FromString("2227b810-9dad-11d1-80b4-00c04fd33333")
+	expectedMatchIDs := []uuid.UUID{matchID}
+
+	var rulesNode RulesNode
+	err = json.Unmarshal([]byte(rulesNodeStr), &rulesNode)
+	if err != nil {
+		t.Error("Error: ", err)
+	}
+
+	rgraph := NewRuleGraphWith([]RulesNode{rulesNode})
+
+	matchIDs, err := rgraph.Evaluate(testObj)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval should not match struct state")
+
+	// Test with failing built_at timestamp ("2011-01-02T15:04:05Z")
+	testObj, err = objFactory("testCase1")
+	assert.NoError(t, err)
+
+	// no match for testCase1
+	expectedMatchIDs = []uuid.UUID{}
+
+	matchIDs, err = rgraph.Evaluate(testObj)
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval should not match struct state")

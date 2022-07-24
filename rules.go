@@ -126,7 +126,7 @@ func (r *Rule) isMatch(json []byte) (bool, error) {
 		return !bufferIsEqual(value, rightSide), nil
 
 	case "greater_than":
-		value, rightSide, err := parseToInt64(valueIf, r.RightSide)
+		value, rightSide, err := parseToFloat64(valueIf, r.RightSide)
 		if err != nil {
 			return false, err
 		}
@@ -134,7 +134,7 @@ func (r *Rule) isMatch(json []byte) (bool, error) {
 		return value > rightSide, nil
 
 	case "lower_than":
-		value, rightSide, err := parseToInt64(valueIf, r.RightSide)
+		value, rightSide, err := parseToFloat64(valueIf, r.RightSide)
 		if err != nil {
 			return false, err
 		}

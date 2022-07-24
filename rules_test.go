@@ -42,16 +42,16 @@ func TestRulesNodeMarshalingFromObject(t *testing.T) {
 	createdAt := time.Now()
 	updatedAt := time.Now()
 	rules := `[{
-	"operation": "greater_than",
-	"left_side": "person.born_at",
-	"right_side": "2012-01-01"
-},
-{
-	"operation": "equal",
-	"left_side": "person.born_at",
-	"right_side": "2012-01-01"
-}]
-`
+		"operation": "greater_than",
+		"left_side": "person.born_at",
+		"right_side": "2012-01-01"
+	},
+	{
+		"operation": "equal",
+		"left_side": "person.born_at",
+		"right_side": "2022-11-10 23:00:00 +0000 UTC"
+	}]
+	`
 
 	box := Box{id, rules, skipProbability, createdAt, updatedAt}
 
