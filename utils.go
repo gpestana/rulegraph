@@ -5,11 +5,19 @@ import (
 	"encoding/gob"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"time"
 )
 
+func extractValueNotNull(mp map[string]interface{}) interface{} {
+	delete(mp, "Valid")
+	keys := reflect.ValueOf(mp).MapKeys()
+	return mp[keys[0].String()]
+}
+
 func parseToFloat64(valueIf interface{}, rightSideStr string) (float64, float64, error) {
+
 	v, r, err := tryParseNumber(valueIf, rightSideStr)
 	if err == nil {
 		// return values if parsing was successful
@@ -37,9 +45,19 @@ func tryParseNumber(valueIf interface{}, rightSideStr string) (float64, float64,
 }
 
 func tryParseDate(valueIf interface{}, rightSideStr string) (float64, float64, error) {
-	valueDate, err := time.Parse(time.RFC3339, valueIf.(string))
-	if err != nil {
-		return 0, 0, fmt.Errorf("Error parsing value (%s) to Date", valueIf)
+
+	fmt.Println("............")
+	fmt.Println(valueIf)
+	fmt.Println(reflect.TypeOf(valueIf))
+	fmt.Println("............")
+
+	valueDate, ok := valueIf.(time.Time)
+	if !ok {
+		v, err := time.Parse(time.RFC3339, valueIf.(string))
+		if err != nil {
+			return 0, 0, fmt.Errorf("Error parsing value (%s) to Date", valueIf)
+		}
+		valueDate = v
 	}
 
 	rightSideDate, err := time.Parse(time.RFC3339, rightSideStr)

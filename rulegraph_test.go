@@ -1,6 +1,7 @@
 package rulegraph
 
 import (
+	"database/sql"
 	"encoding/json"
 	"testing"
 	"time"
@@ -17,9 +18,10 @@ type TestObj struct {
 
 // TestUser is for testing purposes only
 type TestUser struct {
-	Name       string `json:"name"`
-	Age        int    `json:"age"`
-	Permission bool   `json:"permission"`
+	Name         string       `json:"name"`
+	Age          int          `json:"age"`
+	Permission   bool         `json:"permission"`
+	RegisteredAt sql.NullTime `json:"registered_at"`
 }
 
 // TestHouse is for testing purposes only
@@ -35,13 +37,15 @@ func objFactory(test string) ([]byte, error) {
 
 	switch test {
 	case "testCase1":
+		regAt, _ := time.Parse(time.RFC3339, "2010-11-01T02:04:05Z")
 		builtAt, _ := time.Parse(time.RFC3339, "2011-01-02T15:04:05Z")
 
 		obj = TestObj{
 			User: TestUser{
-				Name:       "Pete",
-				Age:        13,
-				Permission: true,
+				Name:         "Pete",
+				Age:          13,
+				Permission:   true,
+				RegisteredAt: sql.NullTime{Time: regAt, Valid: true},
 			},
 			House: TestHouse{
 				ID:      uuid.NewV4(),
@@ -275,4 +279,34 @@ func TestRuleInequalityTimestamp(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval should not match struct state")
+}
+
+func TestRuleGraphNullTime(t *testing.T) {
+	rulesNode1Str := `{ 
+	"id": "1117b810-9dad-11d1-80b4-00c04fd11111",
+	"rules": [
+		{ "operation": "equal", "left_side": "user.registered_at", "right_side": "2010-11-01T02:04:05Z" }
+	]
+}
+`
+	// Test 1
+	testObj, err := objFactory("testCase1")
+	assert.NoError(t, err)
+
+	expectedMatchIDs := []uuid.UUID{
+		uuid.FromStringOrNil("1117b810-9dad-11d1-80b4-00c04fd11111"),
+	}
+
+	var rulesNode1 RulesNode
+	err = json.Unmarshal([]byte(rulesNode1Str), &rulesNode1)
+	if err != nil {
+		t.Error("Error: ", err)
+	}
+
+	rgraph := NewRuleGraphWith([]RulesNode{rulesNode1})
+
+	matchIDs, err := rgraph.Evaluate(testObj)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval test1 should match rule")
 }

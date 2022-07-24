@@ -1,6 +1,8 @@
 package rulegraph
 
 import (
+	"fmt"
+
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -45,6 +47,9 @@ func (rg *RuleGraph) Evaluate(json []byte) ([]uuid.UUID, error) {
 
 // LoadRules replaces the current rules with the input
 func (rg *RuleGraph) LoadRules(rules []RulesNode) {
+
+	fmt.Println(">>> LoadRules: ", rules)
+
 	rg.ruleNodes = rules
 }
 

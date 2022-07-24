@@ -99,6 +99,12 @@ func (r *Rule) isMatch(json []byte) (bool, error) {
 		return false, nil
 	}
 
+	// process map interface which consists of matches sql.Null*
+	m, isMapIf := valueIf.(map[string]interface{})
+	if isMapIf {
+		valueIf = extractValueNotNull(m)
+	}
+
 	switch r.Operation {
 	case "equal":
 		value, err := encodeBuffer(valueIf)
