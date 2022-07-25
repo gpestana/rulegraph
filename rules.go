@@ -107,29 +107,18 @@ func (r *Rule) isMatch(json []byte) (bool, error) {
 
 	switch r.Operation {
 	case "equal":
-		value, err := encodeBuffer(valueIf)
+		value, rightSide, err := parseToString(valueIf, r.RightSide)
 		if err != nil {
 			return false, err
 		}
-		rightSide, err := encodeBuffer(r.RightSide)
-		if err != nil {
-			return false, err
-		}
-
-		return bufferIsEqual(value, rightSide), nil
+		return value == rightSide, nil
 
 	case "not_equal":
-		value, err := encodeBuffer(valueIf)
+		value, rightSide, err := parseToString(valueIf, r.RightSide)
 		if err != nil {
 			return false, err
 		}
-
-		rightSide, err := encodeBuffer(r.RightSide)
-		if err != nil {
-			return false, err
-		}
-
-		return !bufferIsEqual(value, rightSide), nil
+		return value != rightSide, nil
 
 	case "greater_than":
 		value, rightSide, err := parseToFloat64(valueIf, r.RightSide)

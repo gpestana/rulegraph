@@ -3,6 +3,7 @@ package rulegraph
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -22,6 +23,7 @@ type TestUser struct {
 	Age          int          `json:"age"`
 	Permission   bool         `json:"permission"`
 	RegisteredAt sql.NullTime `json:"registered_at"`
+	LeftAt       time.Time    `json:"left_at"`
 }
 
 // TestHouse is for testing purposes only
@@ -78,6 +80,19 @@ func objFactory(test string) ([]byte, error) {
 				BuiltAt: builtAt,
 			},
 		}
+
+	case "testCase4":
+		leftAt := time.Date(2011, 01, 2, 15, 4, 5, 0, time.UTC).UTC()
+
+		obj = TestObj{
+			User: TestUser{
+				LeftAt: leftAt,
+			},
+			House: TestHouse{
+				Size: 10,
+			},
+		}
+
 	}
 
 	return json.Marshal(&obj)
@@ -309,4 +324,40 @@ func TestRuleGraphNullTime(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval test1 should match rule")
+}
+
+func TestRuleTimeInequality(t *testing.T) {
+	rulesNode1Str := `{ 
+	"id": "1117b810-9dad-11d1-80b4-00c04fd11112",
+	"rules": [
+		{ "operation": "equal", "left_side": "house.size", "right_side": "10" },
+		{ "operation": "lower_than", "left_side": "user.left_at", "right_side": "2020-01-02T15:04:05Z" }
+	]
+}
+`
+	// Test 4
+	testObj, err := objFactory("testCase4")
+	assert.NoError(t, err)
+
+	fmt.Println("Test Object::")
+	fmt.Println(string(testObj))
+	fmt.Println("Rules::")
+	fmt.Println(rulesNode1Str)
+
+	expectedMatchIDs := []uuid.UUID{
+		uuid.FromStringOrNil("1117b810-9dad-11d1-80b4-00c04fd11112"),
+	}
+
+	var rulesNode1 RulesNode
+	err = json.Unmarshal([]byte(rulesNode1Str), &rulesNode1)
+	if err != nil {
+		t.Error("Error: ", err)
+	}
+
+	rgraph := NewRuleGraphWith([]RulesNode{rulesNode1})
+
+	matchIDs, err := rgraph.Evaluate(testObj)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedMatchIDs, matchIDs, "Result of eval test4 should match rule")
 }

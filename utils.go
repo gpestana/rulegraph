@@ -16,6 +16,16 @@ func extractValueNotNull(mp map[string]interface{}) interface{} {
 	return mp[keys[0].String()]
 }
 
+func parseToString(valueIf interface{}, rightSideStr string) (string, string, error) {
+	valueStr, ok := valueIf.(string)
+	if ok {
+		return valueStr, rightSideStr, nil
+	}
+	valueStr = strconv.FormatFloat(valueIf.(float64), 'f', -1, 64)
+
+	return valueStr, rightSideStr, nil
+}
+
 func parseToFloat64(valueIf interface{}, rightSideStr string) (float64, float64, error) {
 
 	v, r, err := tryParseNumber(valueIf, rightSideStr)
@@ -45,12 +55,6 @@ func tryParseNumber(valueIf interface{}, rightSideStr string) (float64, float64,
 }
 
 func tryParseDate(valueIf interface{}, rightSideStr string) (float64, float64, error) {
-
-	fmt.Println("............")
-	fmt.Println(valueIf)
-	fmt.Println(reflect.TypeOf(valueIf))
-	fmt.Println("............")
-
 	valueDate, ok := valueIf.(time.Time)
 	if !ok {
 		v, err := time.Parse(time.RFC3339, valueIf.(string))
@@ -79,6 +83,7 @@ func tryParseString(valueIf interface{}, rightSideStr string) (float64, float64,
 	return value, rightSide, err
 }
 
+//nolint
 func encodeBuffer(i interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
@@ -89,6 +94,7 @@ func encodeBuffer(i interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+//nolint
 func bufferIsEqual(x []byte, y []byte) bool {
 	if len(x) != len(y) {
 		return false
